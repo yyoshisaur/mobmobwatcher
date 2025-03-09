@@ -38,6 +38,14 @@ function unloaded()
     alliance:destroy()
 end
 
+command_handler = {}
+command_handler['reaction'] = action_notifier.reaction_command
+
+function addon_command(cmd, ...)
+    command_handler[cmd](...)
+end
+
 windower.register_event('load', loaded)
 windower.register_event('unload', unloaded)
 windower.register_event('logout', function() windower.send_command(string.format('lua unload %s', _addon.name)) end)
+windower.register_event('addon command', addon_command)

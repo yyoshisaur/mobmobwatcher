@@ -11,7 +11,36 @@ local notication_timeout = 3
 local action_history = T{}
 local action_notifier = {}
 
+local reaction_list = T{
+    import_names = S{},
+    begin_ability = L{},
+    finish_ability = L{},
+    begin_spell = L{},
+    finish_spell = L{}
+}
+local reaction_debounce_time = 2
+local last_reaction_time = os.clock()
+
 local dispose_bag = DisposeBag.new()
+
+local function reaction_execute(reactions, actor_id, target_id, action_id)
+    local current_time = os.clock()
+    for react in reactions:it() do
+        if (current_time - last_reaction_time > reaction_debounce_time) and
+            react.action_ids:contains(action_id) then
+            -- exec react.command
+            send_command = react.command:gsub('@actor@', actor_id):gsub('@target@', target_id)
+
+            for char_name in send_command:gmatch("@([^@]+)@") do
+                local p = windower.ffxi.get_mob_by_name(char_name)
+                send_command = p and send_command:gsub('@%s@':format(char_name), p.id) or send_command
+            end
+
+            windower.send_command(windower.to_shift_jis(send_command))
+            last_reaction_time = current_time
+        end
+    end 
+end
 
 action_notifier.init = function(alliance, renderer)
     reaction_conf.init()
@@ -81,25 +110,39 @@ action_notifier.init = function(alliance, renderer)
 
         if act.category == 4 then
             if act.param and res.spells[act.param] and act.targets[1] then
-                finish_spell(act.actor_id, act.targets[1].id, act.param)
+                local actor_id = act.actor_id
+                local target_id = act.targets[1].id
+                local spell_id = act.param
+                finish_spell(actor_id, target_id, spell_id)
+                reaction_execute(reaction_list.finish_spell, actor_id, target_id, spell_id)
             end
         elseif act.category == 7 then
             if act.targets[1] and act.targets[1].actions[1] then
+                local actor_id = act.actor_id
+                local target_id = act.targets[1].id
                 local ability_id = act.targets[1].actions[1].param
                 if res.monster_abilities[ability_id] then
-                    begin_ability(act.actor_id, act.targets[1].id, ability_id)
+                    begin_ability(action_id, target_id, ability_id)
+                    reaction_execute(reaction_list.begin_ability, actor_id, target_id, ability_id)
                 end
             end
         elseif act.category == 8 then
             if act.targets[1] and act.targets[1].actions[1] then
+                local actor_id = act.actor_id
+                local target_id = act.targets[1].id
                 local spell_id = act.targets[1].actions[1].param
                 if res.spells[spell_id] then
-                    begin_spell(act.actor_id, act.targets[1].id, spell_id)
+                    begin_spell(actor_id, target_id, spell_id)
+                    reaction_execute(reaction_list.begin_spell, actor_id, target_id, spell_id)
                 end
             end
         elseif act.category == 11 then
             if act.param and res.monster_abilities[act.param] and act.targets[1] then
-                finish_ability(act.actor_id, act.targets[1].id, act.param)
+                local actor_id = act.actor_id
+                local target_id = act.targets[1].id
+                local ability_id = act.param
+                finish_ability(actor_id, target_id, ability_id)
+                reaction_execute(reaction_list.finish_ability, actor_id, target_id, ability_id)
             end
         end
     end), WindowerEvents.Action)
@@ -188,6 +231,26 @@ end
 
 action_notifier.dispose = function ()
     dispose_bag:destroy()
+end
+
+action_notifier.reaction_command = function (cmd, ...)
+    local reaction_names = L{...}
+    if cmd:lower() == 'set' then
+        for name in reaction_names:it() do
+            if reaction_conf.reaction[name] and not reaction_list.import_names:contains(name) then
+                reaction_list[reaction_conf.reaction[name].category]:append(reaction_conf.reaction[name])
+                reaction_list.import_names:add(name)
+            end
+        end
+    elseif cmd:lower() == 'clear' then
+        reaction_list = T{
+            import_names = S{},
+            begin_ability = L{},
+            finish_ability = L{},
+            begin_spell = L{},
+            finish_spell = L{}
+        }
+    end
 end
 
 return action_notifier
