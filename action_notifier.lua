@@ -49,7 +49,7 @@ action_notifier.init = function(alliance, renderer)
                 if not action_history[actor_id]['abilities'][ability_id] then
                     action_history[actor_id]['abilities'][ability_id] = T{}
                 end
-                if action_notifier_conf.sp_abilities_id:contains(ability_id) then
+                if action_notifier_conf.sp_ability_ids:contains(ability_id) then
                     action_history[actor_id]['abilities'][ability_id]['target'] = target_id
                     action_history[actor_id]['abilities'][ability_id]['begin'] = os.clock()
                 else
