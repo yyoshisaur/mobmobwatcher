@@ -35,3 +35,8 @@
 - HPPを表示する
 - 簡易HPバーを表示する
 - 距離,ID等でソートして表示する
+
+## イメージ
+![SS1](assets/screenshot1.png)
+
+![SS2](assets/screenshot2.png)
