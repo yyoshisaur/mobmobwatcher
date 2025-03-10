@@ -18,7 +18,7 @@ local reaction_list = T{
     begin_spell = L{},
     finish_spell = L{}
 }
-local reaction_debounce_time = 2
+local reaction_debounce_time = 1
 local last_reaction_time = os.clock()
 
 local dispose_bag = DisposeBag.new()
@@ -28,15 +28,21 @@ local function reaction_execute(reactions, actor_id, target_id, action_id)
     for react in reactions:it() do
         if (current_time - last_reaction_time > reaction_debounce_time) and
             react.action_ids:contains(action_id) then
-            -- exec react.command
-            send_command = react.command:gsub('@actor@', actor_id):gsub('@target@', target_id)
+            if react.command == 'face away' then
+                player_util.face_away(windower.ffxi.get_mob_by_id(actor_id))
+            elseif react.command == 'face' then
+                player_util.face(windower.ffxi.get_mob_by_id(actor_id))
+            else
+                -- exec react.command
+                send_command = react.command:gsub('@actor@', actor_id):gsub('@target@', target_id)
 
-            for char_name in send_command:gmatch("@([^@]+)@") do
-                local p = windower.ffxi.get_mob_by_name(char_name)
-                send_command = p and send_command:gsub('@%s@':format(char_name), p.id) or send_command
+                for char_name in send_command:gmatch("@([^@]+)@") do
+                    local p = windower.ffxi.get_mob_by_name(char_name)
+                    send_command = p and send_command:gsub('@%s@':format(char_name), p.id) or send_command
+                end
+
+                windower.send_command(windower.to_shift_jis(send_command))
             end
-
-            windower.send_command(windower.to_shift_jis(send_command))
             last_reaction_time = current_time
         end
     end 
@@ -240,6 +246,11 @@ action_notifier.reaction_command = function (cmd, ...)
             if reaction_conf.reaction[name] and not reaction_list.import_names:contains(name) then
                 reaction_list[reaction_conf.reaction[name].category]:append(reaction_conf.reaction[name])
                 reaction_list.import_names:add(name)
+                log('Load React [ %s ]':format(name))
+                log(reaction_conf.reaction[name].category, reaction_conf.reaction[name].action, reaction_conf.reaction[name].command)
+            else
+                error("Can't Load [ %s ]":format(name))
+                notice('Not Found [ %s ] or Already load.':format(name))
             end
         end
     elseif cmd:lower() == 'clear' then
@@ -250,6 +261,7 @@ action_notifier.reaction_command = function (cmd, ...)
             begin_spell = L{},
             finish_spell = L{}
         }
+        log("Clear Reaction.")
     end
 end
 

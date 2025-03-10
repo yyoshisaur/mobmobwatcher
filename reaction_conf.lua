@@ -28,7 +28,13 @@ end
 conf.reaction['rabbit1'] = {
     category = 'begin_ability',
     action = S{'土煙'},
-    command = 'input /ma ストーン @actor@',
+    command = 'face away',
+}
+
+conf.reaction['rabbit3'] = {
+    category = 'finish_ability',
+    action = S{'土煙'},
+    command = 'face',
 }
 
 conf.reaction['rabbit2'] = {
