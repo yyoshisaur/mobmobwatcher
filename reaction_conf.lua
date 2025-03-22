@@ -25,25 +25,7 @@ end
 
 -- category: begin_ability/finish_ability/begin_spell/finish_spell
 -- command: @actor@/@target@/@char_name@
-conf.reaction['rabbit1'] = {
-    category = 'begin_ability',
-    action = S{'土煙'},
-    command = 'face away',
-}
-
-conf.reaction['rabbit3'] = {
-    category = 'finish_ability',
-    action = S{'土煙'},
-    command = 'face',
-}
-
-conf.reaction['rabbit2'] = {
-    category = 'begin_ability',
-    action = S{'フットキック'},
-    command = 'input /ma ウォータ @actor@',
-}
-
-conf.reaction['rab'] = {
+conf.reaction['death'] = {
     category = 'begin_spell',
     action = S{'デス'},
     command = '/ma スタン @actor@',
