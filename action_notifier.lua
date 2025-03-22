@@ -33,7 +33,6 @@ local function reaction_execute(reactions, actor_id, target_id, action_id)
             elseif react.command == 'face' then
                 player_util.face(windower.ffxi.get_mob_by_id(actor_id))
             else
-                -- exec react.command
                 send_command = react.command:gsub('@actor@', actor_id):gsub('@target@', target_id)
 
                 for char_name in send_command:gmatch("@([^@]+)@") do
@@ -128,7 +127,7 @@ action_notifier.init = function(alliance, renderer)
                 local target_id = act.targets[1].id
                 local ability_id = act.targets[1].actions[1].param
                 if res.monster_abilities[ability_id] then
-                    begin_ability(action_id, target_id, ability_id)
+                    begin_ability(actor_id, target_id, ability_id)
                     reaction_execute(reaction_list.begin_ability, actor_id, target_id, ability_id)
                 end
             end
