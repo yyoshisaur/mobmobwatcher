@@ -44,7 +44,7 @@ player ={
                 if roleType == 'follower' then -- Cylibs-Windower-Events on_message_received
                     return false
                 end
-                error('Unexpected call to trust.main_job.role_with_type(): roleType = %s.':format(roleType))
+                -- error('Unexpected call to trust.main_job.role_with_type(): roleType = %s.':format(roleType))
             end
         }
     }
